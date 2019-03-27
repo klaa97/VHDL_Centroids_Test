@@ -21,7 +21,7 @@ def near_point(p, distance):
 def gen_test(n_mask_1, min_same_distance, distance):
     masks = [str.zfill(bin(i)[2:],8) for i in range(256)]
     mask_in = choice([i for i in masks if i.count('1') == n_mask_1])
-    p = Point(randint(distance - 1,255 - distance),randint(distance - 1,255 - distance))
+    p = Point(randint(distance,255 - distance),randint(distance,255 - distance))
     centroids = [None] * 8
     positions = [i for i in range(8)]
     shuffle(positions)
@@ -107,9 +107,11 @@ def create_seq_tbenchs(list_n_mask_1, list_min_same_distance, list_distance, n_t
                                 mem_o_data <= RAM(conv_integer(mem_address)) after 2 ns;
                             end if;
                         end if;
-                    elsif tb_rst = '1' then \n if (count=0) then count <= 1;"""
+                    else """
     for j in range(1,n_tests):
-        test += """elsif count = {} then count <= {}; RAM <= (""".format(j,j+1)
+        if (j!=1):
+            test += """els"""
+        test += """if count = {} then RAM <= (""".format(j)
         test += '0 => "{}",\n'.format(options[j][0])
         for i in range (8):
             test += "{} => std_logic_vector(to_unsigned( {}, 8)),\n".format(i*2+1,options[j][3][7-i].x)
@@ -121,21 +123,24 @@ def create_seq_tbenchs(list_n_mask_1, list_min_same_distance, list_distance, n_t
                 end process;
                 test : process is
                 begin """
-    for j in range(n_tests):
-        test +="""wait for 100 ns;
+    test += """ wait for 100 ns;
                     wait for c_CLOCK_PERIOD;
                     tb_rst <= '1';
                     wait for c_CLOCK_PERIOD;
-                    tb_rst <= '0';
+                    tb_rst <= '0'; """
+    for j in range(n_tests):
+        test +="""  wait for c_CLOCK_PERIOD;
+                    count <= {};
                     wait for c_CLOCK_PERIOD;
+                    count <= 0;
                     tb_start <= '1';
                     wait for c_CLOCK_PERIOD;
                     wait until tb_done = '1';
                     wait for c_CLOCK_PERIOD;
                     tb_start <= '0';
                     wait until tb_done = '0';
-                    assert RAM(19) = "{}" report "TEST FAILED" severity failure;""".format(options[j][1])
-    test += """assert false report "{} TESTS PASSED" severity failure;
+                    assert RAM(19) = "{}" report "TEST FAILED" severity failure;""".format(j,options[j][1])
+    test += """\nassert false report "{} TESTS PASSED" severity failure;
     end process test;
                 end projecttb;""".format(n_tests)
     with open(filename, "w") as f:
@@ -230,15 +235,15 @@ def create_tbench(n_mask_1, min_same_distance, distance,filename):
                     wait for c_CLOCK_PERIOD;
                     tb_start <= '0';
                     wait until tb_done = '0';
-                    assert RAM(19) = "{}" report "TEST FAILED" severity failure;
+                    assert RAM(19) = "{}" report "TEST FAILED" severity failure;\n
                     assert false report "TEST PASSED" severity failure;
                 end process test;
                 end projecttb;""".format(mask_out)
     with open(filename, "w") as f:
         f.write(test)
 if __name__ == "__main__":
-    n_test = 1000
-    create_seq_tbenchs([randint(6,7) for i in range(n_test)],[randint(4,6) for i in range(n_test)],[randint(30,80) for i in range(n_test)],n_test,"multiple_tests.vhd")
+    n_test =1000
+    create_seq_tbenchs([randint(6,7) for i in range(n_test)],[randint(4,6) for i in range(n_test)],[randint(30,80) for i in range(n_test)],n_test,"multiple_test.vhd")
 
         
     
