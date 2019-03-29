@@ -13,7 +13,7 @@ create_seq_tbenchs(list_n_mask_1, list_min_same_distance, list_distance, n_tests
  - n_tests è il numero di test, uguale alla size() degli argomenti
  - filename è il nome del file
 
-Lo script in TCL, con le dovute modifiche (occorre cambiare il nome del simulation set e il numero di test), è il seguente:
+Lo script in TCL, con le dovute modifiche (occorre cambiare il nome del simulation set e il numero di test), può essere runnato attraverso la seguende linea di comando (è necessario avere vivado accessibile da $PATH):
 ```
 vivado -mode tcl -source testcentroids.tcl -verbose project_reti_logiche.xpr
 ```
